@@ -120,6 +120,45 @@ function dropBlock() {
     drawScreen();
 }
 
+window.addEventListener('keyup',function(e){
+    console.log(e);
+    switch(e.code) {
+        case 'Space':
+            console.log('space');
+            break;
+        case 'ArrowRight':
+            console.log('ArrowRight');
+            break;
+        case 'ArrowLeft':
+            console.log('ArrowLeft');
+            break;
+        case 'ArrowDown':
+            console.log('ArrowDown');
+            break;
+        case 'ArrowUp':
+                console.log('ArrowUp');
+                break;
+        default:
+            break;            
+    }
+});
+window.addEventListener('keydown',function(e){
+    console.log(e);
+    switch(e.code) {
+        case 'ArrowRight':
+            console.log('ArrowRight');
+            break;
+        case 'ArrowLeft':
+            console.log('ArrowLeft');
+            break;
+        case 'ArrowDown':
+            console.log('ArrowDown');
+            break;
+        default:
+            break;            
+    }
+});
+
 makeBoard();
 createBlock();
 window.setInterval(dropBlock,500);
