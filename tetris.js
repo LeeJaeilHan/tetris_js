@@ -1,5 +1,6 @@
 let board = document.querySelector("#board");
 let boardData = [];
+let stopFlag=0;
 let blockArr = [
     ['red',true,[
         [1,1],
@@ -70,9 +71,11 @@ let blockDict = {
 function makeBoard(){
     let fragment = document.createDocumentFragment();
     for(let i=0; i<20; i++) {
+        boardData.push([]);
         let tr = document.createElement("tr");
         fragment.appendChild(tr);
         for(let j=0; j<10; j++) {
+            boardData[i].push(0);
             let td = document.createElement("td");
             tr.appendChild(td);
         }
@@ -91,13 +94,32 @@ function drawScreen(){
 function createBlock(){
     let block = blockArr[Math.floor(Math.random()*7)][2];
     block.forEach(function(tr,i){
-        boardData[i] = [];
         tr.forEach(function(td,j){
+            //TODO : 이미 차있는 경우 게임오버
             boardData[i][j+3] = td;
         });
     });
     drawScreen();
 }
 
+function dropBlock() {
+    let stopFlag=0;
+    for(let i=boardData.length-2; i>=0; i--) {
+        boardData[i].forEach(function(td,j){
+            if(td>0 && td<10) {
+                if(!boardData[i+1][j] && !stopFlag){
+                    boardData[i+1][j] = td;
+                    boardData[i][j] = 0;
+                } else {
+                    boardData[i][j] = td*10;
+                    stopFlag=1;
+                }
+            }
+        });
+    }
+    drawScreen();
+}
+
 makeBoard();
 createBlock();
+window.setInterval(dropBlock,500);
