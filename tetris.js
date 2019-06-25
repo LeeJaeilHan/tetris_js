@@ -1,164 +1,171 @@
-let board = document.querySelector("#board");
-let boardData = [];
-let stopFlag=0;
-let blockArr = [
-    ['red',true,[
-        [1,1],
-        [1,1],
-    ]],
-    ['blue',true,[
-        [2,2,2,2],
-    ]],
-    ['orange',true,[
-        [0,3,0],
-        [3,3,3],
-    ]],
-    ['skyblue',true,[
-        [4,0,0],
-        [4,4,4],
-    ]],
-    ['yellow',true,[
-        [0,0,5],
-        [5,5,5],
-    ]],
-    ['yellowgreen',true,[
-        [0,6,6],
-        [6,6,0],
-    ]],
-    ['pink',true,[
-        [7,7,0],
-        [0,7,7],
-    ]],
-]
-let blockDict = {
-    0:['white',false,[]],
-    1:['red',true,[
-        [1,1],
-        [1,1],
-    ]],
-    2:['blue',true,[
+const TICK_MS = 200;
+const WIDTH = 10;
+const HEIGHT = 20;
+const board = document.querySelector("#board");
+const pieces = [
+    [
+        [0,0,0,0],
+        [0,1,1,0],
+        [0,1,1,0],
+        [0,0,0,0]
+    ],
+    [
+        [0,0,0,0],
         [1,1,1,1],
-    ]],
-    3:['orange',true,[
-        [0,1,0],
-        [1,1,1],
-    ]],
-    4:['skyblue',true,[
-        [1,0,0],
-        [1,1,1],
-    ]],
-    5:['yellow',true,[
-        [0,0,1],
-        [1,1,1],
-    ]],
-    6:['yellowgreen',true,[
-        [0,1,1],
-        [1,1,0],
-    ]],
-    7:['pink',true,[
-        [1,1,0],
-        [0,1,1],
-    ]],
-    10:['red',false,[]],
-    20:['blue',false,[]],
-    30:['orange',false,[]],
-    40:['skyblue',false,[]],
-    50:['yellow',false,[]],
-    60:['yellowgreen',false,[]],
-    70:['pink',false,[]],
-}
+        [0,0,0,0],
+        [0,0,0,0],
+    ],
+    [
+        [0,0,1,0],
+        [0,1,1,0],
+        [0,0,1,0],
+        [0,0,0,0]
+    ],
+    [
+        [0,1,1,0],
+        [0,1,0,0],
+        [0,1,0,0],
+        [0,0,0,0]
+    ],
+    [
+        [0,1,1,0],
+        [0,0,1,0],
+        [0,0,1,0],
+        [0,0,0,0]
+    ],
+    [
+        [0,1,0,0],
+        [0,1,1,0],
+        [0,0,1,0],
+        [0,0,0,0]
+    ],
+    [
+        [0,0,1,0],
+        [0,1,1,0],
+        [0,1,0,0],
+        [0,0,0,0]
+    ]
+];
 
-function makeBoard(){
-    let fragment = document.createDocumentFragment();
-    for(let i=0; i<20; i++) {
-        boardData.push([]);
-        let tr = document.createElement("tr");
-        fragment.appendChild(tr);
-        for(let j=0; j<10; j++) {
-            boardData[i].push(0);
-            let td = document.createElement("td");
-            tr.appendChild(td);
+function isValid(rows,piece,R,C){
+    for(let i=0; i<4; i++)
+        for(let j=0; j<4; j++) {
+            if(!piece[i][j]) continue;
+            if(R+i>=HEIGHT || C+j>=WIDTH || C+j < 0 || rows[R+i][C+j])
+                return false;
         }
+    return true;
+}
+
+
+function draw(game) {
+    const rows = game.getRows();
+    rows.forEach(function(tr,i){
+        tr.forEach(function(td,j){
+            if(td)
+                board.children[i].children[j].className = 'orange';
+            else
+                board.children[i].children[j].className = 'white';
+        });
+    });
+}
+function applyPiece(rows,piece,R,C){
+    let newRows = [];
+    for(let i=0; i<rows.length; i++)
+        newRows[i] = rows[i].slice();
+    for(let i=0; i<4; i++)
+        for(let j=0; j<4; j++)
+            if(piece[i][j])
+                newRows[R+i][C+j] = 1;
+    return newRows;
+}
+function randomPiece() {
+    return pieces[Math.floor(Math.random()*pieces.length)];
+};
+
+function TetrisGame(){
+    this.gameover = false;
+    this.curPiece = randomPiece();
+    this.nextPiece = randomPiece();
+    this.pieceR=0;
+    this.pieceC=3;
+    this.rows = Array(HEIGHT).fill(Array(WIDTH).fill(0));
+}
+TetrisGame.prototype.tick = function() {
+    if(this.gameover)
+        return false;
+    if(isValid(this.rows,this.curPiece,this.pieceR+1,this.pieceC)){
+        this.pieceR+=1;
+    } else {
+        this.rows = applyPiece(this.rows,this.curPiece,this.pieceR,this.pieceC);
+        this.pieceR=0;
+        this.pieceC=3;
+        if(!isValid(this.rows,this.nextPiece,this.pieceR,this.pieceC)){
+            this.gameover = true;
+            return false;
+        }
+        this.curPiece = this.nextPiece;
+        this.nextPiece = randomPiece();
+        
     }
-    board.appendChild(fragment);
-}
+    return true;
+};
+TetrisGame.prototype.getRows = function(){
+    return applyPiece(this.rows,this.curPiece,this.pieceR,this.pieceC);
+};
 
-function drawScreen(){
-    boardData.forEach(function(tr,i){
-        tr.forEach(function(td,j){
-            board.children[i].children[j].className = blockDict[td][0];
+
+
+function tetrisRun() {
+    const game = new TetrisGame();
+    makeBoard();
+    play();
+    function makeBoard() {
+        const fragment = document.createDocumentFragment();
+        [...Array(HEIGHT).keys()].forEach((row,i)=>{
+            const tr = document.createElement('tr')
+            fragment.appendChild(tr);
+            [...Array(WIDTH).keys()].forEach((col,j)=>{
+                const td = document.createElement('td')
+                tr.appendChild(td);
+            })
         });
-    });
-}
-
-function createBlock(){
-    let block = blockArr[Math.floor(Math.random()*7)][2];
-    block.forEach(function(tr,i){
-        tr.forEach(function(td,j){
-            //TODO : 이미 차있는 경우 게임오버
-            boardData[i][j+3] = td;
-        });
-    });
-    drawScreen();
-}
-
-function dropBlock() {
-    let stopFlag=0;
-    for(let i=boardData.length-2; i>=0; i--) {
-        boardData[i].forEach(function(td,j){
-            if(td>0 && td<10) {
-                if(!boardData[i+1][j] && !stopFlag){
-                    boardData[i+1][j] = td;
-                    boardData[i][j] = 0;
-                } else {
-                    boardData[i][j] = td*10;
-                    stopFlag=1;
-                }
+        board.appendChild(fragment);
+    }
+    function play(){
+        window.setInterval(function(){
+            if(game.tick()) {
+                draw(game);
             }
-        });
+        }, TICK_MS);
+        function setKeyboardEvent(e){
+            switch(e.code) {
+                case 'ArrowRight':
+                    console.log('ArrowRight');
+                    break;
+                case 'ArrowLeft':
+                    console.log('ArrowLeft');
+                    break;
+                case 'ArrowDown':
+                    console.log('ArrowDown');
+                    break;
+                case 'Space':
+                    console.log('space');
+                    break;
+                case 'ArrowUp':
+                    console.log('ArrowUp');
+                    break;
+                case 'Enter':
+                    console.log('Enter');
+                default:
+                    break;            
+            }
+        }
+        window.addEventListener('keydown',setKeyboardEvent);
     }
-    drawScreen();
+    function pause() {
+        
+    }
 }
 
-window.addEventListener('keyup',function(e){
-    console.log(e);
-    switch(e.code) {
-        case 'Space':
-            console.log('space');
-            break;
-        case 'ArrowRight':
-            console.log('ArrowRight');
-            break;
-        case 'ArrowLeft':
-            console.log('ArrowLeft');
-            break;
-        case 'ArrowDown':
-            console.log('ArrowDown');
-            break;
-        case 'ArrowUp':
-                console.log('ArrowUp');
-                break;
-        default:
-            break;            
-    }
-});
-window.addEventListener('keydown',function(e){
-    console.log(e);
-    switch(e.code) {
-        case 'ArrowRight':
-            console.log('ArrowRight');
-            break;
-        case 'ArrowLeft':
-            console.log('ArrowLeft');
-            break;
-        case 'ArrowDown':
-            console.log('ArrowDown');
-            break;
-        default:
-            break;            
-    }
-});
-
-makeBoard();
-createBlock();
-window.setInterval(dropBlock,500);
+tetrisRun();
