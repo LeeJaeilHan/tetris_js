@@ -86,7 +86,18 @@ function randomPiece() {
 
 function rotatePiece(piece) {
     let newPiece = [];
-    for(let i=0; i<)
+    for(let i=0; i<4; i++)
+        newPiece[i] = piece[i].slice();
+    let mid = 4/2;
+    for(let i=0; i<mid; i++)
+        for(let j=i; j<3-i; j++) {
+            let tmp = newPiece[i][j];
+            newPiece[i][j] = newPiece[3-j][i];
+            newPiece[3-j][i] = newPiece[3-i][3-j];
+            newPiece[3-i][3-j] = newPiece[j][3-i];
+            newPiece[j][3-i] = tmp;
+        }
+    return newPiece;
 }
 
 function TetrisGame(){
@@ -135,9 +146,10 @@ TetrisGame.prototype.fallDown = function(){
     while(isValid(this.rows,this.curPiece,this.pieceR+1,this.pieceC))
         this.pieceR+=1;
 }
-//TODO
 TetrisGame.prototype.rotate = function(){
-
+    let newPiece = rotatePiece(this.curPiece);
+    if(isValid(this.rows,newPiece,this.pieceR,this.pieceC))
+        this.curPiece = newPiece;
 }
 
 function tetrisRun() {
@@ -177,7 +189,7 @@ function tetrisRun() {
                     game.fallDown();
                     break;
                 case 'ArrowUp':
-                    console.log('ArrowUp');
+                    game.rotate();
                     break;
                 case 'Enter':
                     console.log('Enter');
