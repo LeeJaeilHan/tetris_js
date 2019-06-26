@@ -57,7 +57,6 @@ function isValid(rows,piece,R,C){
     return true;
 }
 
-
 function draw(game) {
     const rows = game.getRows();
     rows.forEach(function(tr,i){
@@ -69,6 +68,7 @@ function draw(game) {
         });
     });
 }
+
 function applyPiece(rows,piece,R,C){
     let newRows = [];
     for(let i=0; i<rows.length; i++)
@@ -79,9 +79,15 @@ function applyPiece(rows,piece,R,C){
                 newRows[R+i][C+j] = 1;
     return newRows;
 }
+
 function randomPiece() {
     return pieces[Math.floor(Math.random()*pieces.length)];
 };
+
+function rotatePiece(piece) {
+    let newPiece = [];
+    for(let i=0; i<)
+}
 
 function TetrisGame(){
     this.gameover = false;
@@ -113,8 +119,26 @@ TetrisGame.prototype.tick = function() {
 TetrisGame.prototype.getRows = function(){
     return applyPiece(this.rows,this.curPiece,this.pieceR,this.pieceC);
 };
+TetrisGame.prototype.steerLeft = function(){
+    if(isValid(this.rows,this.curPiece,this.pieceR,this.pieceC-1))
+        this.pieceC-=1;
+}
+TetrisGame.prototype.steerRight = function(){
+    if(isValid(this.rows,this.curPiece,this.pieceR,this.pieceC+1))
+        this.pieceC+=1;
+}
+TetrisGame.prototype.steerDown = function(){
+    if(isValid(this.rows,this.curPiece,this.pieceR+1,this.pieceC))
+        this.pieceR+=1;
+}
+TetrisGame.prototype.fallDown = function(){
+    while(isValid(this.rows,this.curPiece,this.pieceR+1,this.pieceC))
+        this.pieceR+=1;
+}
+//TODO
+TetrisGame.prototype.rotate = function(){
 
-
+}
 
 function tetrisRun() {
     const game = new TetrisGame();
@@ -141,16 +165,16 @@ function tetrisRun() {
         function setKeyboardEvent(e){
             switch(e.code) {
                 case 'ArrowRight':
-                    console.log('ArrowRight');
+                    game.steerRight();
                     break;
                 case 'ArrowLeft':
-                    console.log('ArrowLeft');
+                    game.steerLeft();
                     break;
                 case 'ArrowDown':
-                    console.log('ArrowDown');
+                    game.steerDown();
                     break;
                 case 'Space':
-                    console.log('space');
+                    game.fallDown();
                     break;
                 case 'ArrowUp':
                     console.log('ArrowUp');
@@ -160,6 +184,7 @@ function tetrisRun() {
                 default:
                     break;            
             }
+            draw(game);
         }
         window.addEventListener('keydown',setKeyboardEvent);
     }
