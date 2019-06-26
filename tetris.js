@@ -89,7 +89,7 @@ function rotatePiece(piece) {
     for(let i=0; i<4; i++)
         newPiece[i] = piece[i].slice();
     let mid = 4/2;
-    for(let i=0; i<mid; i++)
+    for(let i=0; i<mid; i++) 
         for(let j=i; j<3-i; j++) {
             let tmp = newPiece[i][j];
             newPiece[i][j] = newPiece[3-j][i];
@@ -98,6 +98,25 @@ function rotatePiece(piece) {
             newPiece[j][3-i] = tmp;
         }
     return newPiece;
+}
+
+function killRows(rows){
+    let newRows = Array(HEIGHT).fill(Array(WIDTH).fill(0));
+    let idx=HEIGHT-1;
+    
+    for(let i=HEIGHT-1; i>=0; i--) {
+        let kill = true;
+        for(let j=0; j<WIDTH; j++)
+            if(!rows[i][j]){
+                kill = false;
+                break;
+            }
+        if(!kill) {
+            newRows[idx--] = rows[i].slice();
+        }
+    }
+    
+    return newRows;
 }
 
 function TetrisGame(){
@@ -115,6 +134,7 @@ TetrisGame.prototype.tick = function() {
         this.pieceR+=1;
     } else {
         this.rows = applyPiece(this.rows,this.curPiece,this.pieceR,this.pieceC);
+        this.rows = killRows(this.rows);
         this.pieceR=0;
         this.pieceC=3;
         if(!isValid(this.rows,this.nextPiece,this.pieceR,this.pieceC)){
@@ -123,7 +143,6 @@ TetrisGame.prototype.tick = function() {
         }
         this.curPiece = this.nextPiece;
         this.nextPiece = randomPiece();
-        
     }
     return true;
 };
